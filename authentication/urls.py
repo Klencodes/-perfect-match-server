@@ -20,6 +20,8 @@ urlpatterns = [
     path('user/onboarding/update_profile_photo/', UpdateProfilePhoto.as_view()),
     path('user/onboarding/prefer_gender/', CreatePreferMatch.as_view()),
     path('user/onboarding/allow_push_notification/', AllowPushNotification.as_view()),
+    path('user/update_notification_permissions/', UpdateNotificationSettings.as_view()),
+    path('user/get_notification_permissions/', GetNotificationSettings.as_view()),
 
 
 

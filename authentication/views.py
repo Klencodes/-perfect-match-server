@@ -293,7 +293,6 @@ class SignInAPI(generics.GenericAPIView):
         user = User.objects.get(phone_number=request.data['phone_number'])
         user.last_login = timezone.now()
         token, created = Token.objects.get_or_create(user=user)
-        user.is_loggedin = True
         if user.last_login is None:
             user.first_login = True
             user.save()
@@ -450,6 +449,38 @@ class ResetPassword(APIView):
         else:
             return Response({"response": "FAILED", "message": "Post request have parameters mising"})
 
+class UpdateNotificationSettings(CreateAPIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk=None):
+        user_data = request.data
+        user = self.request.user
+        user_info = User.objects.get(id=user.id)
+        user_info.push_notifications = user_data['push_notifications']
+        user_info.chat_notifications = user_data['chat_notifications']
+        user_info.news_letter = user_data['news_letter']
+        user_info.save()
+        token, created = Token.objects.get_or_create(user=user_info)
+        user_serializer = UserSerializer(user_info, context={"request": request})
+        user_data = user_serializer.data
+        user_data["auth_token"] = str(token)
+        return Response({"response": "SUCCESSFUL", "message": "Notification settings updated successfully", "results": user_data}, status=status.HTTP_200_OK)
+
+class GetNotificationSettings(RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, pk=None):
+        user_data = request.data
+        user = self.request.user
+        user_info = User.objects.get(id=user.id)
+        user_data = {
+            'push_notifications': user_info.push_notifications,
+            'chat_notifications': user_info.chat_notifications,
+            'news_letter': user_info.news_letter
+        }
+        return Response({"response": "SUCCESSFUL", "message": "Notification settings successfully fetched", "results": user_data}, status=status.HTTP_200_OK)
+
 
 
 '''
@@ -571,7 +602,6 @@ class UserAPI(generics.RetrieveAPIView):
     def get_object(self):
         return self.request.user
 
-
 class ManagerSignInAPI(generics.GenericAPIView):
     def post(self, request, *args, **kwargs):
         serializer = SignInManagerSerializer(data=request.data)
@@ -580,7 +610,6 @@ class ManagerSignInAPI(generics.GenericAPIView):
         user = User.objects.get(email=request.data['email'])
         user.last_login = timezone.now()
         token, created = Token.objects.get_or_create(user=user)
-        user.is_loggedin = True
         if user.last_login is None:
             user.first_login = True
             user.save()
@@ -600,10 +629,8 @@ class ManagerSignInAPI(generics.GenericAPIView):
             'image': user.image,
             'auth_provider': user.auth_provider,
             'auth_token': token.key,
-            'is_loggedin': user.is_loggedin,
         }
         return Response({"results": user_data, "message": "User logged in successfully", "response": "SUCCESSFUL"}, status=status.HTTP_200_OK)
-
 
 class ChangePasswordAPI(generics.UpdateAPIView):
     """
