@@ -324,6 +324,21 @@ class CreatePreferMatch(CreateAPIView):
         user_data["auth_token"] = str(token)
         return Response({"response": "SUCCESSFUL", "message": "Prefered gender successfully set", "results": user_data}, status=status.HTTP_200_OK)
 
+class DeactivateAccount(CreateAPIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk=None):
+        user = self.request.user
+        user_info = User.objects.get(id=user.id)
+        user_info.deactivated = True
+        user_info.save()
+        token, created = Token.objects.get_or_create(user=user_info)
+        user_serializer = UserSerializer(user_info, context={"request": request})
+        user_data = user_serializer.data
+        user_data["auth_token"] = str(token)
+        return Response({"response": "SUCCESSFUL", "message": "User account deactivated successfully", "results": user_data}, status=status.HTTP_200_OK)
+
 class AllowPushNotification(CreateAPIView):
 
     permission_classes = [IsAuthenticated]
@@ -340,6 +355,100 @@ class AllowPushNotification(CreateAPIView):
         user_data = user_serializer.data
         user_data["auth_token"] = str(token)
         return Response({"response": "SUCCESSFUL", "message": "Prefered gender successfully set", "results": user_data}, status=status.HTTP_200_OK)
+
+class PhoneForgotPassword(APIView):
+    '''
+    Validate if account is there for a given phone number and then send otp for forgot password reset
+    
+    '''
+    def post(self, request, *args, **kwargs):
+        phone_number = request.data.get('phone_number')
+        if phone_number:
+            phone_number = str(phone_number)
+            user = User.objects.filter(phone_number__iexact = phone_number)
+            if user.exists():
+                otp = send_otp_forgot(phone_number)
+                if otp:
+                    otp = str(otp)
+                    count = 0
+                    old = PhoneOTP.objects.filter(phone_number__iexact = phone_number)
+                    if old.exists():
+                        old = old.first()
+                        k = old.count
+                        if k >= 5:
+                            return Response({"response" : "FAILED", "message": "Maximum otp limits reached. Kindly support our customer care or try with different number"})
+                        old.count = k + 1
+                        old.otp = otp
+                        old.save()
+                        return Response({"response": "SUCCESSFUL", "message": "OTP has been sent for password reset."})
+                    else:
+                        count = count + 1
+                        PhoneOTP.objects.create(phone_number=phone_number, otp=otp, count=count, forgot=True,)
+                        return Response({"response": "SUCCESSFUL", "message": "OTP has been sent for password reset"})
+                else:
+                    return Response({"response": "FAILED", "message" : "OTP sending error. Please try after some time"})
+            else:
+                return Response({"response" : "FAILED", "message": "Phone number not recognised. Kindly try a new account for this number"})
+    
+class VerifyPasswordResetCode(APIView):
+    '''
+    If you have received an otp, post a request with phone number and that otp and you will be redirected to reset  the forgotted password
+    
+    '''
+
+    def post(self, request, *args, **kwargs):
+        phone = request.data.get('phone_number', False)
+        otp_sent = request.data.get('otp', False)
+
+        if phone and otp_sent:
+            old = PhoneOTP.objects.filter(phone_number__iexact=phone)
+            if old.exists():
+                old = old.first()
+                if old.forgot == False:
+                    return Response({"response": "FAILED", "message": "This phone number have not send valid otp for forgot password."})
+                otp = old.otp
+                if str(otp) == str(otp_sent):
+                    old.forgot_logged = True
+                    old.save()
+                    return Response({"response": "SUCCESSFUL", "message": "OTP verified, kindly proceed to create new password"})
+                else:
+                    return Response({"response": "FAILED", "message": "OTP incorrect, please try again"})
+            else:
+                return Response({"response": "FAILED", "message": "Phone number not recognised. Kindly request a new otp with this number"})
+        else:
+            return Response({"response": "FAILED", "message": "Either phone number or otp field is empty"})
+
+class ResetPassword(APIView):
+    '''
+    if forgot_logged is valid and account exists then only pass otp, phone number and password to reset the password. All three should match.APIView
+    '''
+
+    def post(self, request, *args, **kwargs):
+        phone = request.data.get('phone_number', False)
+        otp = request.data.get("otp", False)
+        password = request.data.get('password', False)
+
+        if phone and otp and password:
+            old = PhoneOTP.objects.filter(Q(phone_number__iexact=phone) & Q(otp__iexact=otp))
+            if old.exists():
+                old = old.first()
+                if old.forgot_logged:
+                    # post_data = {'phone_number' : phone_number, 'password' : password, confirm_password: 'confirm_password'}
+                    user = get_object_or_404(User, phone_number__iexact=phone)
+                    serializer = ForgetPasswordSerializer(data=request.data)
+                    serializer.is_valid(raise_exception=True)
+                    if user:
+                        user.set_password(serializer.data.get('password'))
+                        user.deactivated = False
+                        user.save()
+                        old.delete()
+                        return Response({"response": "SUCCESSFUL", "message": "Password changed successfully. Please Login"})
+                else:
+                    return Response({"response": "FAILED", "message": "OTP Verification failed. Please try again in previous step"})
+            else:
+                return Response({"response": "FAILED", "message": "Phone number and otp are not matching or a new phone number has entered. Request a new otp in forgot password"})
+        else:
+            return Response({"response": "FAILED", "message": "Post request have parameters mising"})
 
 
 
@@ -494,103 +603,6 @@ class ManagerSignInAPI(generics.GenericAPIView):
             'is_loggedin': user.is_loggedin,
         }
         return Response({"results": user_data, "message": "User logged in successfully", "response": "SUCCESSFUL"}, status=status.HTTP_200_OK)
-
-
-class ValidatePhoneForgot(APIView):
-    '''
-    Validate if account is there for a given phone number and then send otp for forgot password reset
-    
-    '''
-    def post(self, request, *args, **kwargs):
-        phone_number = request.data.get('phone_number')
-        if phone_number:
-            phone_number = str(phone_number)
-            user = User.objects.filter(phone_number__iexact = phone_number)
-            if user.exists():
-                otp = send_otp_forgot(phone_number)
-                if otp:
-                    otp = str(otp)
-                    count = 0
-                    old = PhoneOTP.objects.filter(phone_number__iexact = phone_number)
-                    if old.exists():
-                        old = old.first()
-                        k = old.count
-                        if k >= 5:
-                            return Response({"response" : "FAILED", "message": "Maximum otp limits reached. Kindly support our customer care or try with different number"})
-                        old.count = k + 1
-                        old.save()
-                        return Response({"response": "SUCCESSFUL", "message": "OTP has been sent for password reset."})
-                    else:
-                        count = count + 1
-                        PhoneOTP.objects.create(phone_number=phone_number, otp=otp, count=count, forgot=True,)
-                        return Response({"response": "SUCCESSFUL", "message": "OTP has been sent for password reset"})
-                else:
-                    return Response({"response": "FAILED", "message" : "OTP sending error. Please try after some time"})
-            else:
-                return Response({"response" : "FAILED", "message": "Phone number not recognised. Kindly try a new account for this number"})
-    
-class ForgotValidateOTP(APIView):
-    '''
-    If you have received an otp, post a request with phone number and that otp and you will be redirected to reset  the forgotted password
-    
-    '''
-
-    def post(self, request, *args, **kwargs):
-        phone = request.data.get('phone_number', False)
-        otp_sent = request.data.get('otp', False)
-
-        if phone and otp_sent:
-            old = PhoneOTP.objects.filter(phone_number__iexact=phone)
-            if old.exists():
-                old = old.first()
-                if old.forgot == False:
-                    return Response({"response": "FAILED", "message": "This phone number have not send valid otp for forgot password."})
-                otp = old.otp
-                if str(otp) == str(otp_sent):
-                    old.forgot_logged = True
-                    old.save()
-                    return Response({"response": "SUCCESSFUL", "message": "OTP verified, kindly proceed to create new password"})
-                else:
-                    return Response({"response": "FAILED", "message": "OTP incorrect, please try again"})
-            else:
-                return Response({"response": "FAILED", "message": "Phone number not recognised. Kindly request a new otp with this number"})
-        else:
-            return Response({"response": "FAILED", "message": "Either phone number or otp field is empty"})
-
-class ForgetPasswordChange(APIView):
-    '''
-    if forgot_logged is valid and account exists then only pass otp, phone number and password to reset the password. All three should match.APIView
-    '''
-
-    def post(self, request, *args, **kwargs):
-        phone = request.data.get('phone_number', False)
-        otp = request.data.get("otp", False)
-        password = request.data.get('password', False)
-        confirm_password = request.data.get('confirm_password', False)
-
-        if phone and otp and password:
-            if password != confirm_password:
-                return Response({"message": "Password do not match"})
-            old = PhoneOTP.objects.filter(Q(phone_number__iexact=phone) & Q(otp__iexact=otp))
-            if old.exists():
-                old = old.first()
-                if old.forgot_logged:
-                    # post_data = {'phone_number' : phone_number, 'password' : password, confirm_password: 'confirm_password'}
-                    user = get_object_or_404(User, phone_number__iexact=phone)
-                    serializer = ForgetPasswordSerializer(data=request.data)
-                    serializer.is_valid(raise_exception=True)
-                    if user:
-                        user.set_password(serializer.data.get('password'))
-                        user.active = True
-                        user.save()
-                        old.delete()
-                        return Response({"response": "SUCCESSFUL", "message": "Password changed successfully. Please Login"})
-                else:
-                    return Response({"response": "FAILED", "message": "OTP Verification failed. Please try again in previous step"})
-            else:
-                return Response({"response": "FAILED", "message": "Phone number and otp are not matching or a new phone number has entered. Request a new otp in forgot password"})
-        else:
-            return Response({"response": "FAILED", "message": "Post request have parameters mising"})
 
 
 class ChangePasswordAPI(generics.UpdateAPIView):

@@ -110,7 +110,6 @@ class ForgetPasswordSerializer(serializers.Serializer):
     """
     phone_number = serializers.CharField(required=True)
     password = serializers.CharField(required=True)
-    confirm_password = serializers.CharField(required=True)
 
 '''
 Email Phone seriliazers
