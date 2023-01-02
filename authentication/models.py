@@ -39,6 +39,7 @@ class UserManager(BaseUserManager):
         user.is_superuser = True
         user.verified_phone = True
         user.verified_email = True
+        user.is_staff = True
         user.user_type = "ADMIN"
         user.save()
         return user
@@ -65,18 +66,21 @@ class User(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=150, )
     last_name = models.CharField(max_length=150,)
     gender = models.CharField(max_length=10)
+    prefered_gender = models.CharField(max_length=10)
     username = models.CharField(max_length=255, unique=True, db_index=True, null=True,)
     full_name = models.CharField(max_length=255, null=True, blank=True)
     email = models.EmailField( max_length=255, unique=True, null=True, blank=True)
+    birth_date = models.DateTimeField(null=True)
     verified_phone = models.BooleanField(default=False)
     verified_email = models.BooleanField(default=False)
     deactivated = models.BooleanField(default=False)
     onboarding_completed = models.BooleanField(default=False)
-    onboarding_percentage = models.CharField(max_length=5,)
+    onboarding_percentage = models.CharField(max_length=5, default="0")
     is_staff = models.BooleanField(default=False)
     is_loggedin = models.BooleanField(default=False)
     first_login = models.BooleanField(default=False)
-    image = models.TextField(null=True, blank=True, default="")
+    allow_push_notification = models.BooleanField(default=False)
+    profile_picture = models.TextField(null=True, blank=True, default="")
     auth_provider = models.CharField(max_length=15, blank=False, null=False, default=AUTH_PROVIDERS.get('PHONE'))
     phone_number = models.CharField(validators=[phone_regex], max_length=17, null=True, unique=True)
     signup_date = models.DateTimeField(auto_now_add=True)
@@ -115,12 +119,18 @@ class Address(models.Model):
     city = models.CharField(max_length=100, blank=False, null=False)
     street_address = models.CharField(max_length=255, blank=False, null=False)
     postal_code = models.CharField(max_length=20, blank=True, null=True)
-    primary = models.BooleanField(default=False)
-    building_number = models.CharField(max_length=20, blank=True, null=True)
-    apartment_number = models.CharField(max_length=255, blank=True, null=True)
+    is_home_address = models.BooleanField(default=False)
+    is_billing_address = models.BooleanField(default=False)
+    state = models.CharField(max_length=255, blank=True, null=True)
     date_created = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
     objects = UserManager()
 
     def __str__(self):
         return str(self.user.full_name) + ' Lives in ' + str(self.city)
+
+class File(models.Model):
+    image = models.FileField(upload_to=upload_image_path_profile, blank=False, null=False)
+    objects=models.Manager()
+    def __str__(self):
+        return self.image.name

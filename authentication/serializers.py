@@ -8,38 +8,17 @@ from rest_framework import serializers
 from django.contrib import auth
 from .models import *
 
-class CreateStaffSerializer(serializers.ModelSerializer):
-    # password = serializers.CharField(max_length=68, min_length=6, write_only=True)
-    email = serializers.CharField(max_length=150)
-
+class FileSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
-        fields = ('email', 'last_name', 'first_name', 'user_type')
-        # extra_kwargs = {'password': {'write_only': True}, }
-
-    def create(self, validated_data):
-        user = User.objects.create_staffuser(**validated_data)
-        return user
-
-'''
-Phone Serializers
-'''
-class CreateUserSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(max_length=68, min_length=6, write_only=True)
-
+        model = File
+        fields = "__all__"
+        
+class AddressPostSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
-        fields = ('email', 'phone_number', 'user_type', 'password')
-
-    def create(self, validated_data):
-        user = User.objects._create_user(**validated_data)
-        return user
-
-class BulkUserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('id', 'first_name', 'last_name', 'email', 'phone_number', 'user_type', 'gender', 'is_verified' )
-
+        model = Address
+        exclude = ['user']
+        
+        
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -86,6 +65,43 @@ class SignInUserSerializer(serializers.Serializer):
 
         attrs['user'] = user
         return attrs
+
+
+
+
+
+
+class CreateStaffSerializer(serializers.ModelSerializer):
+    # password = serializers.CharField(max_length=68, min_length=6, write_only=True)
+    email = serializers.CharField(max_length=150)
+
+    class Meta:
+        model = User
+        fields = ('email', 'last_name', 'first_name', 'user_type')
+        # extra_kwargs = {'password': {'write_only': True}, }
+
+    def create(self, validated_data):
+        user = User.objects.create_staffuser(**validated_data)
+        return user
+
+'''
+Phone Serializers
+'''
+class CreateUserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(max_length=68, min_length=6, write_only=True)
+
+    class Meta:
+        model = User
+        fields = ('email', 'phone_number', 'user_type', 'password')
+
+    def create(self, validated_data):
+        user = User.objects._create_user(**validated_data)
+        return user
+
+class BulkUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'first_name', 'last_name', 'email', 'phone_number', 'user_type', 'gender', 'verified_phone' )
 
 
 class ForgetPasswordSerializer(serializers.Serializer):
@@ -215,11 +231,6 @@ class SetNewPasswordSerializer(serializers.Serializer):
 Users data 
 
 '''
-class AddressPostSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Address
-        exclude = ['user']
-        
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
