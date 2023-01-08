@@ -6,6 +6,8 @@ from django.dispatch import receiver
 # from django.utils import timezone
 from django.db import models
 from .utils import *
+import uuid
+
 class Group(models.Model):
     group_id=models.OneToOneField(Group, on_delete=models.CASCADE, blank=True, null=True)
     title=models.CharField(max_length=50, blank=True, null=True, unique=True)
@@ -62,6 +64,7 @@ phone_regex = RegexValidator( regex=r'^\+?1?\d{9,14}$', message ="Phone number m
 
 class User(AbstractBaseUser, PermissionsMixin):
     # group_id = models.ManyToManyField(Group, related_name="group_id", default=1)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user_type = models.CharField(max_length=20, choices=USERTYPE_CHOICES, default='CUSTOMER')
     first_name = models.CharField(max_length=150, )
     last_name = models.CharField(max_length=150,)
