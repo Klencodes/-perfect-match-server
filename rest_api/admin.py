@@ -10,7 +10,10 @@ class LikeAdmin(admin.ModelAdmin):
 class MatchAdmin(admin.ModelAdmin):
     list_display = ['id', 'user_liking', 'liked_user', 'created_at',]
 
-admin.site.register(Like)
-admin.site.register(ChatMessage)
-admin.site.register(ChatHistory)
-admin.site.register(Match)
+class ChatMessageAdmin(admin.ModelAdmin):
+    list_display = ['id', 'chat_room', 'sender', 'message', 'read', 'created_at',]
+
+admin.site.register(Like, LikeAdmin)
+admin.site.register(Match, MatchAdmin)
+admin.site.register(ChatMessage, ChatMessageAdmin)
+admin.site.register(ChatRoom)

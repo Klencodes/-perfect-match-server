@@ -53,27 +53,36 @@ class AllUsers(ListAPIView):
 
 
 
-class ChatListView(APIView):
-    
+#This list all the chat histories available
+class ChatRoomAPIView(APIView):
     def get(self, request):
-        user = request.user
-        chats = ChatMessage.objects.filter(Q(sender=user) | Q(receiver=user)).order_by('-created_at')
-        serializer = ChatMessageSerializer(chats, many=True)
-        return Response(serializer.data)
+        chat_rooms = ChatRoom.objects.all()
+        serializer = ChatRoomSerializer(chat_rooms, many=True)
+            
+        return Response({"response": "SUCCESSFUL", "messgage": "Chats successfully fetched", "results": serializer.data})
 
-class ChatDetailView(APIView):
+    def post(self, request):
+        print(request.user.id, request.data["receiver_id"])
+        model_instance = ChatRoom()
+        model_instance.participants.add([request.user.id, request.data["receiver_id"]])
+        print(model_instance, 'model_instance')
+        model_instance.save()
+        return Response({"response": "SUCCESSFUL", "messgage": "Chat room successfully created", "results": serializer.data})
 
-    def get(self, request, pk):
-        chat = get_object_or_404(ChatMessage, pk=pk)
-        serializer = ChatMessageSerializer(chat)
-        return Response(serializer.data)
-
-class CreateChatView(APIView):
-
-    def post(self, request, pk):
-        chat = get_object_or_404(ChatMessage, pk=pk)
-        serializer = ChatMessageSerializer(data=request.data)
+class ChatMessageAPIView(APIView):
+    def post(self, request):
+        chat_room = get_object_or_404(ChatRoom, pk=request.data['chat_room_id'])
+        serializer = PostChatMessageSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(sender=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            serializer.save(sender=request.user, chat_room=chat_room)
+            return Response({"response": "SUCCESSFUL", "messgage": "Message successfully created", "results": serializer.data})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ChatMessageDetailAPIView(APIView):
+    #This show details for a specific chat histories which containes listr of message tied to a chat room
+    def get(self, request, pk):
+        chat_room = get_object_or_404(ChatRoom, pk=pk)
+        chat_messages = ChatMessage.objects.filter(chat_room=chat_room)
+        print(chat_messages.values_list('sender',))
+        serializer = ChatMessageSerializer(chat_messages, many=True)
+        return Response({"response": "SUCCESSFUL", "messgage": "Chat details successfully fetched", "results": serializer.data})
