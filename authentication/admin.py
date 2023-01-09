@@ -5,7 +5,7 @@ from .models import *
 
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ['id', 'first_name', 'last_name', 'verified_phone', 'onboarding_percentage', 'email', 'auth_provider', 'phone_number', 'user_type', 'signup_date', 'date_updated']
+    list_display = ['id', 'first_name', 'last_name', 'verified_phone', 'onboarding_percentage', 'email', 'auth_provider', 'phone_number', 'user_type', 'created_at',]
 
 
 class PhoneOTPAdmin(admin.ModelAdmin):

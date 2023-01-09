@@ -12,8 +12,8 @@ class Group(models.Model):
     group_id=models.OneToOneField(Group, on_delete=models.CASCADE, blank=True, null=True)
     title=models.CharField(max_length=50, blank=True, null=True, unique=True)
     description=models.CharField(max_length=255, blank=True, null=True)
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_updated = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     objects = models.Manager()
     
     def __str__(self):
@@ -85,11 +85,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     chat_notifications = models.BooleanField(default=False)
     news_letter = models.BooleanField(default=False)
     first_login = models.BooleanField(default=False)
-    profile_picture = models.TextField(null=True, blank=True, default="")
+    profile_picture = models.TextField(null=True, blank=True, default="https://miro.medium.com/max/720/1*W35QUSvGpcLuxPo3SRTH4w.png")
     auth_provider = models.CharField(max_length=15, blank=False, null=False, default=AUTH_PROVIDERS.get('PHONE'))
     phone_number = models.CharField(validators=[phone_regex], max_length=17, null=True, unique=True)
-    signup_date = models.DateTimeField(auto_now_add=True)
-    date_updated = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name', 'user_type']
     objects = UserManager()
@@ -127,8 +127,8 @@ class Address(models.Model):
     is_home_address = models.BooleanField(default=False)
     is_billing_address = models.BooleanField(default=False)
     state = models.CharField(max_length=255, blank=True, null=True)
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_updated = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     objects = UserManager()
 
     def __str__(self):
