@@ -13,6 +13,7 @@ urlpatterns = [
     path('user/verify_password_reset_code/', VerifyPasswordResetCode.as_view()),
     path('user/reset_password/', ResetPassword.as_view()),
     path('user/signin/', SignInAPI.as_view()),
+    path('user/verify_id_card/', VerifyIdCard.as_view()),
     path('user/deactivate_account/', DeactivateAccount.as_view()),
     path('user/onboarding/legal_name/', CreateLegalName.as_view()),
     path('user/onboarding/birth_date/', CreateBirthDate.as_view()),

@@ -86,6 +86,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     news_letter = models.BooleanField(default=False)
     first_login = models.BooleanField(default=False)
     profile_picture = models.TextField(null=True, blank=True, default="https://miro.medium.com/max/720/1*W35QUSvGpcLuxPo3SRTH4w.png")
+    id_card = models.TextField(null=True, blank=True, default="")
+    id_card_verified = models.BooleanField(default=False)
     auth_provider = models.CharField(max_length=15, blank=False, null=False, default=AUTH_PROVIDERS.get('PHONE'))
     phone_number = models.CharField(validators=[phone_regex], max_length=17, null=True, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)

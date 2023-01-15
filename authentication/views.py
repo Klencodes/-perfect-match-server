@@ -172,6 +172,22 @@ class UpdateProfilePhoto(CreateAPIView):
         user_data["auth_token"] = str(token)
         return Response({"response": "SUCCESSFUL", "message": "User Information successfully returned", "results": user_data}, status=status.HTTP_200_OK)
 
+class VerifyIdCard(CreateAPIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk=None):
+        user_data = request.data
+        user = self.request.user
+        user_info = User.objects.get(id=user.id)
+        user_info.id_card = user_data['id_card']
+        user_info.save()
+        token, created = Token.objects.get_or_create(user=user_info)
+        user_serializer = UserSerializer(user_info, context={"request": request})
+        user_data = user_serializer.data
+        user_data["auth_token"] = str(token)
+        return Response({"response": "SUCCESSFUL", "message": "User ID card successfully updated", "results": user_data}, status=status.HTTP_200_OK)
+
 class CreateBirthDate(CreateAPIView):
     '''
     create user date of birth auth token is required
