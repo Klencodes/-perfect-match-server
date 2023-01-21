@@ -8,7 +8,7 @@ from rest_framework.generics import get_object_or_404
 from helpers.pagination import CustomPagination
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
-from datetime import datetime, timedelta
+from datetime import date
 from rest_framework.views import APIView
 from django.shortcuts import render
 from django.utils import timezone
@@ -319,8 +319,8 @@ class SignInAPI(generics.GenericAPIView):
         user_serializer = UserSerializer(user, context={"request": request})
         user_data = user_serializer.data
         user_data["auth_token"] = str(token)
+        user_data["age"] = calculate_age(user.birth_date)
         return Response({"results": user_data, "message": "User logged in successfully", "response": "SUCCESSFUL"}, status=status.HTTP_200_OK)
-
 class CreatePreferMatch(CreateAPIView):
 
     permission_classes = [IsAuthenticated]

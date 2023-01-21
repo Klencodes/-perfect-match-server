@@ -19,5 +19,9 @@ urlpatterns = [
 
 ]
 
+websocket_urlpatterns = [
+    path('group_chat/<str:chat_room_id>/', GroupChatConsumer.as_asgi()),
+]
+
 if settings.DEBUG:
   urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

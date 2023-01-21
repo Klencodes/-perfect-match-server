@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'authentication',
     'rest_api',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -85,7 +86,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'server.wsgi.application'
-
+ASGI_APPLICATION = "server.asgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
@@ -193,4 +194,18 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 
+BROKER_URL = 'redis://127.0.0.1:6379'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT = 'json'
+CELERY_SEND_TASK_ERROR_MAIL = True
+    
+CHANNEL_LAYERS = {
+    "default": {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        "CONFIG": {
+            "hosts": [os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379')],
+        },
+        # "ROUTING": "base_source.routing.channel_routing",
+    },
+}
 django_on_heroku.settings(locals())

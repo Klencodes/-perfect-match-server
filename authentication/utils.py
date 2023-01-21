@@ -1,3 +1,4 @@
+from datetime import date
 from django.core.mail import EmailMessage
 from django.shortcuts import get_object_or_404
 from rest_framework import renderers
@@ -241,3 +242,7 @@ def get_filename_ext(filepath):
     base_name = os.path.basename(filepath)
     name, ext = os.path.splitext(base_name)
     return name, ext
+
+def calculate_age(dob):
+    today = date.today()
+    return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))

@@ -21,15 +21,29 @@ class Match(models.Model):
 
 class ChatRoom(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    participants = models.ManyToManyField(User) 
+    name = models.CharField(max_length=128)
+    participants = models.ManyToManyField(to=User, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    def get_online_count(self):
+        return self.participants.count()
 
+    def join(self, user):
+        self.participants.add(user)
+        self.save()
+
+    def leave(self, user):
+        self.participants.remove(user)
+        self.save()
+
+    def __str__(self):
+        return f'{self.name} ({self.get_online_count()})'
 class ChatMessage(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    chat_room = models.ForeignKey(ChatRoom, related_name='message_chatroom', on_delete=models.CASCADE) 
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sender')
-    # receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='receiver')
+    chat_room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE) 
+    user = models.ForeignKey(User, on_delete=models.CASCADE, )
     message = models.TextField()
     read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return f'{self.user.first_name}: {self.content} [{self.timestamp}]'
