@@ -6,5 +6,5 @@ urlpatterns = [
     path('user/matches/', Matches.as_view()),  
     path('user/all/', AllUsers.as_view()),  
     path('chat_rooms/', ChatRooms.as_view()),  
-    path('chat_rooms/chat_histories/<int:pk>/', ChatRoomDetails.as_view()),  
+    path('chat_rooms/chat_histories/<str:pk>/', ChatRoomDetails.as_view()),  
 ]

@@ -97,23 +97,23 @@ class GroupChatConsumer(WebsocketConsumer):
 
         try:
             chat_room = ChatRoom.objects.get(id=chat_room_id)
-            sender = User.objects.get(id=user_id)
-            chat_message = ChatMessage.objects.create(message=message, chat_room=chat_room, sender=sender)
+            user = User.objects.get(id=user_id)
+            chat_message = ChatMessage.objects.create(message=message, chat_room=chat_room, user=user)
         except:
             return ''
 
-        out_data =  {
+        message_data =  {
             "message": message,
-            "user_id": json.dumps(sender.id, default=str),
-            "user_name": "%s %s"%(sender.first_name, sender.last_name),
-            "user_picture": sender.profile_picture,
-            "created_at": json.dumps(chat_message.created, default=str)
+            "user_id": json.dumps(user.id, default=str),
+            "user_name": "%s %s"%(user.first_name, user.last_name),
+            "user_picture": user.profile_picture,
+            "created_at": json.dumps(chat_message.created_at, default=str)
         }
         async_to_sync(self.channel_layer.group_send)(
-            self.group_chat_room,
+            self.chat_room,
             { 
-                "type": "chat.message", 
-                "text": json.dumps(out_data), 
+                "type": "chat_message", 
+                "text": json.dumps(message_data), 
             },
         )
     
