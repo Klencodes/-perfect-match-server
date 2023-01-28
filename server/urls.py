@@ -20,7 +20,7 @@ urlpatterns = [
 ]
 
 websocket_urlpatterns = [
-    path('group_chat/<str:chat_room_id>/', GroupChatConsumer.as_asgi()),
+    path('group_chat/<str:chat_room_id>/', ChatRoomConsumer.as_asgi()),
 ]
 
 if settings.DEBUG:

@@ -23,6 +23,11 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         exclude = ['password', 'groups', 'user_permissions' ] 
+        
+class UsersSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        exclude = ['is_superuser', 'last_login', 'password', 'groups', 'user_permissions', 'user_type', 'username', 'full_name', 'verified_phone', 'verified_email', 'onboarding_completed', 'onboarding_percentage', 'is_staff', 'allow_push_notification', 'push_notifications', 'chat_notifications', 'news_letter', 'first_login', 'id_card', 'auth_provider', 'created_at', 'updated_at' ] 
 
 class SignInManagerSerializer(serializers.Serializer):
     email = serializers.CharField()

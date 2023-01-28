@@ -8,6 +8,8 @@ from django.db import models
 from .utils import *
 import uuid
 
+from .utils import upload_image_path_profile
+
 class Group(models.Model):
     group_id=models.OneToOneField(Group, on_delete=models.CASCADE, blank=True, null=True)
     title=models.CharField(max_length=50, blank=True, null=True, unique=True)
@@ -73,7 +75,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=255, unique=True, db_index=True, null=True,)
     full_name = models.CharField(max_length=255, null=True, blank=True)
     email = models.EmailField( max_length=255, unique=True, null=True, blank=True)
-    birth_date = models.DateTimeField(null=True)
+    birthdate = models.DateTimeField(null=True)
     verified_phone = models.BooleanField(default=False)
     verified_email = models.BooleanField(default=False)
     deactivated = models.BooleanField(default=False)

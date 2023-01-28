@@ -198,7 +198,7 @@ class CreateBirthDate(CreateAPIView):
     def post(self, request, pk=None):
         user = self.request.user
         user_info = User.objects.get(id=user.id)
-        user_info.birth_date = request.data["birth_date"]
+        user_info.birthdate = request.data["birthdate"]
         user_info.onboarding_percentage = request.data["onboarding_percentage"]
         user_info.save()
         token, created = Token.objects.get_or_create(user=user_info)
@@ -319,7 +319,7 @@ class SignInAPI(generics.GenericAPIView):
         user_serializer = UserSerializer(user, context={"request": request})
         user_data = user_serializer.data
         user_data["auth_token"] = str(token)
-        user_data["age"] = calculate_age(user.birth_date)
+        user_data["age"] = calculate_age(user.birthdate)
         return Response({"results": user_data, "message": "User logged in successfully", "response": "SUCCESSFUL"}, status=status.HTTP_200_OK)
 class CreatePreferMatch(CreateAPIView):
 
