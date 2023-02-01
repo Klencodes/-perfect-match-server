@@ -38,40 +38,45 @@ class SignUpAPI(APIView):
 
     def post(self, request, *args, **kwargs):
         phone = request.data['phone_number']
+        email = request.data['email']
         if phone:
             user = User.objects.filter(phone_number=phone)
             if user.exists():
-                raise AuthenticationFailed({"response": "FAILED", "message": "Phone number already exists"})
+                raise AuthenticationFailed({"response": "FAILED", "message": "Phone number already exists"}) 
+        if email:
+            em = User.objects.filter(email=email)
+            if em.exists():
+                raise AuthenticationFailed({"response": "FAILED", "message": "Email already exists"})
                 # logic to send the otp and store the phone number and that otp in table.
-            else:
-                # Create initial user account
-                serializer = CreateUserSerializer(data=request.data)
-                serializer.is_valid(raise_exception=True)
-                user = serializer.save()
-                user_info = User.objects.get(phone_number=phone)
-                # token, created = Token.objects.get_or_create(user=user_info)
-                user_serializer = UserSerializer(user_info, context={"request": request})
-                # user_serializer.auth_token = str(token)
-                code = send_otp(phone)                
-                if code:
-                    count = 0                    
-                    old = PhoneOTP.objects.filter(phone_number = phone)
-                    if old.exists():
-                        old = old.first()
-                        count = old.count                     
-                        old.count = count + 1
-                        old.otp = str(code)
-                        old.save() 
-                    else:
-                        code = send_otp(phone)                
-                        count = count + 1
-                        PhoneOTP.objects.create(phone_number=phone, otp=str(code), count=count)
-                    if count >= 5:
-                        raise AuthenticationFailed({"response": "FAILED", "message": "Maximum OTP limits reached. Kindly contact our customer care or try with different number"})
-                else:
-                    raise AuthenticationFailed({"response": "FAILED", "message": "OTP sending error. Please try after some time."})
 
-                return Response({"response": "SUCCESSFUL", "message": "OTP has been sent successfully.", "results": user_serializer.data})
+            # Create initial user account
+            serializer = CreateUserSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            user = serializer.save()
+            user_info = User.objects.get(phone_number=phone)
+            # token, created = Token.objects.get_or_create(user=user_info)
+            user_serializer = UserSerializer(user_info, context={"request": request})
+            # user_serializer.auth_token = str(token)
+            code = send_otp(phone)                
+            if code:
+                count = 0                    
+                old = PhoneOTP.objects.filter(phone_number = phone)
+                if old.exists():
+                    old = old.first()
+                    count = old.count                     
+                    old.count = count + 1
+                    old.otp = str(code)
+                    old.save() 
+                else:
+                    code = send_otp(phone)                
+                    count = count + 1
+                    PhoneOTP.objects.create(phone_number=phone, otp=str(code), count=count)
+                if count >= 5:
+                    raise AuthenticationFailed({"response": "FAILED", "message": "Maximum OTP limits reached. Kindly contact our customer care or try with different number"})
+            else:
+                raise AuthenticationFailed({"response": "FAILED", "message": "OTP sending error. Please try after some time."})
+
+            return Response({"response": "SUCCESSFUL", "message": "OTP has been sent successfully.", "results": user_serializer.data})
                 
         else:
             raise AuthenticationFailed({"response": "FAILED", "message": "I haven't received any phone number. Please do a POST request."})
@@ -219,13 +224,13 @@ class CreateAddress(CreateAPIView):
             user_info.save()
 
             if request.data["is_home_address"] == True:
-                old_primary_addressess = Address.objects.all()
+                old_primary_addressess = Address.objects.filter(user_id=user.id)
                 for item in old_primary_addressess:
                     item.is_home_address = False
                     item.save()
 
             if request.data["is_billing_address"] == True:
-                old_primary_addressess = Address.objects.all()
+                old_primary_addressess = Address.objects.filter(user_id=user.id)
                 for item in old_primary_addressess:
                     item.is_billing_address = False
                     item.save()
@@ -319,7 +324,7 @@ class SignInAPI(generics.GenericAPIView):
         user_serializer = UserSerializer(user, context={"request": request})
         user_data = user_serializer.data
         user_data["auth_token"] = str(token)
-        user_data["age"] = calculate_age(user.birthdate)
+        # user_data["age"] = calculate_age_with_string(user.birthdate)
         return Response({"results": user_data, "message": "User logged in successfully", "response": "SUCCESSFUL"}, status=status.HTTP_200_OK)
 class CreatePreferMatch(CreateAPIView):
 

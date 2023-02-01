@@ -19,37 +19,39 @@ class Match(models.Model):
     class Meta:
         unique_together = ('user_liking', 'liked_user')
 
-class ChatRoom(models.Model):
+class Group(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=128)
+    purpose = models.CharField(max_length=255, default="")
     image = models.TextField()
-    participants = models.ManyToManyField(to=User, blank=True)
+    members = models.ManyToManyField(to=User, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def get_online_count(self):
-        return self.participants.count()
+        return self.members.count()
 
     def join(self, user):
-        self.participants.add(user)
+        self.members.add(user)
         self.save()
 
     def leave(self, user):
-        self.participants.remove(user)
+        self.members.remove(user)
         self.save()
 
     def __str__(self):
         return f'{self.name} ({self.get_online_count()})'
 
-class ChatMessage(models.Model):
+class Message(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    chat_room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE) 
+    group = models.ForeignKey(Group, on_delete=models.CASCADE) 
     sender = models.ForeignKey(User, on_delete=models.CASCADE, )
+    # type = models.CharField(max_length=10, default="private")
     message = models.TextField()
     read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.user.first_name}: {self.message} [{self.created_at}]'
+        return f'{self.sender.first_name}: {self.message} [{self.created_at}]'
 class PaymentCard(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
