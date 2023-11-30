@@ -16,7 +16,7 @@ class FileSerializer(serializers.ModelSerializer):
 class AddressPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
-        exclude = ['user']
+        exclude = []
         
         
 class UserSerializer(serializers.ModelSerializer):

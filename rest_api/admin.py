@@ -16,6 +16,10 @@ class MessageAdmin(admin.ModelAdmin):
 class PaymentCardAdmin(admin.ModelAdmin):
     list_display = ['id', 'user', 'authorize_payment', 'is_primary', 'card_number', 'type', 'cvc', 'expiry_date', 'card_holder']
 
+class FeedbackAdmin(admin.ModelAdmin):
+    list_display = ['id', 'user', 'topic', 'message', 'rating', 'created_at',]
+
+admin.site.register(Feedback, FeedbackAdmin)
 admin.site.register(Like, LikeAdmin)
 admin.site.register(Match, MatchAdmin)
 admin.site.register(Message, MessageAdmin)

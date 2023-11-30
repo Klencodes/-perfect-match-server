@@ -102,6 +102,15 @@ class PaymentMethod(APIView):
         chat_room = get_object_or_404(PaymentCard, pk=pk).delete()
         return Response({"response": "SUCCESSFUL", "message": "Payment card successfully removed", }, status=status.HTTP_200_OK)
 
+# ADD FEEDBACK
+class AddFeedback(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        print(request.data, "equest.data")
+        serializer = FeedbackSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=self.request.user)
+        return Response({"response": "SUCCESSFUL", "message": "Feedback successfully added", "results": serializer.data}, status=status.HTTP_201_CREATED)
 
 # CHAT VIEW
 class ChatRoomDetails(APIView):

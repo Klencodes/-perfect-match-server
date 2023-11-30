@@ -8,6 +8,7 @@ urlpatterns = [
     path('user/payment_method/', PaymentMethod.as_view()),  
     path('user/payment_method/<uuid:pk>/', PaymentMethod.as_view()),  
     path('user/make_card_primary/', MakeCardPrimary.as_view()), 
+    path('user/feedback/', AddFeedback.as_view()), 
 
     path('group_chats/', GroupMessages.as_view()),  
     path('group_chats/details/', ChatRoomDetails.as_view()),

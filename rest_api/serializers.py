@@ -6,6 +6,7 @@ class SimpleUserSerializer(serializers.ModelSerializer):
     class Meta:
         model=User
         exclude=['user_type', 'prefered_gender', 'full_name', 'email', 'birthdate', 'verified_phone', 'verified_email', 'onboarding_completed', 'onboarding_percentage', 'is_staff', 'allow_push_notification', 'push_notifications', 'chat_notifications', 'news_letter', 'first_login', 'id_card', 'auth_provider', 'created_at', 'updated_at', 'password']
+
 class MatchSerializer(serializers.ModelSerializer):
     class Meta:
         model=Match
@@ -35,3 +36,9 @@ class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = PaymentCard
         exclude = []
+
+class FeedbackSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Feedback
+        exclude = ['user']
+
