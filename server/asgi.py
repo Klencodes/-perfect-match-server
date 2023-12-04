@@ -9,7 +9,7 @@ django_asgi_app = get_asgi_application()
 from channels.auth import AuthMiddlewareStack
 from django.urls import re_path
 from channels.routing import ProtocolTypeRouter, URLRouter
-from . import urls
+from server import urls
 
 application = ProtocolTypeRouter({
     "http": django_asgi_app,

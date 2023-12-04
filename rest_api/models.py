@@ -70,7 +70,7 @@ class PaymentCard(models.Model):
 class Feedback(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    rating = models.IntegerField(max_length=2)
+    rating = models.IntegerField()
     topic = models.CharField(max_length=100)
     message = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)

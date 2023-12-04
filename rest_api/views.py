@@ -224,7 +224,10 @@ class GroupChatConsumer(WebsocketConsumer):
 
 
 class PrivateChatConsumer(AsyncWebsocketConsumer):
+    print('CONNECTION.....')
+    
     async def connect(self):
+        print(self, 'self...')
         self.sender = self.scope['url_route']['kwargs']['sender_id']
         self.recepient = self.scope['url_route']['kwargs']['recepient_id']
         recepient = User.objects.filter(id=self.recepient)
@@ -242,6 +245,7 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def disconnect(self, close_code):
+        print('DISCONNECTED')
         pass
         # await self.channel_layer.group_discard(
         #     self.username1 + '-' + self.username2,
